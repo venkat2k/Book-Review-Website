@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Login/Signup</title>
+	<style type="text/css">
+		.tabcontent {
+			display: none;
+		}
+
+		.container0 {
+			height: 500px;
+			width: 500px;
+			border-color: solid black;
+			border-width: 1px;
+		}
+
+		body {
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container0">
+		<div class="tabs">
+			<button class="tablinks" id="defaultOpen" onclick="openTab(event, 'Login')"> Login </button>
+			<button class="tablinks" onclick="openTab(event, 'Signup')"> Sign Up</button>
+		</div>
+		<div id="Login" class="tabcontent">
+			<form action="{{ url_for('login') }}" method="post">
+				<input type="text" name="username" placeholder="Username" autofocus>
+				<input type="password" name="password" placeholder="Password">
+				<input type="submit" value="Login">
+			</form>
+		</div>
+		<div id="Signup" class="tabcontent">
+			<form action="{{ url_for('signup') }}" method="post">
+				<input type="text" name="username" placeholder="Username" autofocus>
+				<input type="text" name="display_name" placeholder="Display Name">
+				<input type="password" name="password" placeholder="Password">
+				<input type="submit" value="Sign Up">
+			</form>
+		</div>
+	</div>
+	<script>
+		function openTab(evt, type) {
+			var i, tabcontent, tablinks;
+			tabcontent = document.getElementsByClassName("tabcontent");
+			for (i = 0; i < tabcontent.length; i++) {
+				tabcontent[i].style.display = "none";
+			}
+			tablinks = document.getElementsByClassName("tablinks");
+			for (i = 0; i < tablinks.length; i++) {
+				tablinks[i].className = tablinks[i].className.replace(" active", "");
+			}
+			document.getElementById(type).style.display = "block";
+			evt.currentTarget.className += " active";
+		}
+	</script>
+	<script>
+		document.getElementById("defaultOpen").click();
+	</script>
+</body>
+
+</html>
