@@ -23,26 +23,65 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+	if "username" in session:
+		print("yes")
+		return redirect(url_for('home'))
+	else:
+		return render_template("index.html")
 
 @app.route("/login", methods = ["POST"])
 def login():
 	username = request.form.get("username")
 	password = request.form.get("password")
+	
 	msg = "failure"
-	count = db.execute("SELECT count(*) FROM userdata where username = :username and password = :password", {"username": username, "password": password}).fetchone()
-	if count[0] == 1:
-		msg = "success"
-	else: msg = str(count)
+	count = db.execute("SELECT count(*) FROM userdata where username = :username and password = :password",
+	 {"username": username, "password": password}).fetchone()
 	db.commit()
-	return render_template("success.html", result = msg)
+	if count[0] == 1:
+		msg = "success"     # needs login failure handling
+		session["username"] = username
+		session["display_name"] = db.execute("SELECT displayname FROM userdata where username = :username",
+		{"username": username}).fetchone()
+		db.commit()
+	else: msg = str(count)
+	
+	return redirect(url_for('home'))
 
 @app.route("/signup", methods = ["POST"])
 def signup():
 	username = request.form.get("username")
 	password = request.form.get("password")
 	display_name = request.form.get("display_name")
+	session["username"] = username
+	session["display_name"] = display_name
 	db.execute("INSERT INTO userdata (username, password, displayname) VALUES (:username, :password, :displayname)",
 		{"username": username, "password": password, "displayname": display_name})
 	db.commit()
-	return render_template("success.html", result = "success")
+	return redirect(url_for('home'))
+
+@app.route("/logout", methods = ["POST"])
+def logout():
+	session.pop("username", None)
+	session.pop("display_name", None)
+	return redirect(url_for('index'))
+
+@app.route("/home")
+def home():
+	if "username" not in session:
+		return redirect(url_for('index'))
+	return render_template("home.html", username = session["username"], dname = session["display_name"])
+
+@app.route("/results", methods = ["POST", "GET"])
+def search():
+	search_text = request.form.get("search_text")
+	results = []
+	results = db.execute("""SELECT title FROM books WHERE LOWER(title) LIKE '%{0}%' or LOWER(isbn) like '%{0}%' or LOWER(author) like '%{0}%' """.format(search_text)).fetchall()
+	db.commit()
+	return render_template("searchresults.html", search_text = search_text, results = results)
+
+
+@app.route("books/<string:book_name>", methods = ["POST", "GET"])
+def book():
+
+	pass
