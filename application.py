@@ -76,12 +76,22 @@ def home():
 def search():
 	search_text = request.form.get("search_text")
 	results = []
-	results = db.execute("""SELECT title FROM books WHERE LOWER(title) LIKE '%{0}%' or LOWER(isbn) like '%{0}%' or LOWER(author) like '%{0}%' """.format(search_text)).fetchall()
+	results = db.execute("""SELECT title, isbn FROM books WHERE LOWER(title) LIKE '%{0}%' or LOWER(isbn) like '%{0}%' or LOWER(author) like '%{0}%' """.format(search_text)).fetchall()
 	db.commit()
 	return render_template("searchresults.html", search_text = search_text, results = results)
 
 
-@app.route("books/<string:book_name>", methods = ["POST", "GET"])
-def book():
+@app.route("/books/<string:isbn>", methods = ["POST", "GET"])
+def book(isbn):
+	title, author, year = db.execute("SELECT title, author, year FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+	session["isbn"] = isbn
+	db.commit()
+	return render_template("book.html", title = title, author = author, year = year, isbn = isbn)
 
-	pass
+@app.route("/submitreview", methods = ["POST"])
+def submit_review():
+	isbn = session["isbn"]
+	review_text = request.form.get("review_text")
+	db.execute("INSERT INTO reviews (isbn, username, review_text) VALUES ('{0}', '{1}', '{2}')".format(isbn, session["username"], review_text))
+	db.commit()
+	return redirect(url_for('book', isbn = isbn))
