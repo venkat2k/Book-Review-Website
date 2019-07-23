@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <p>{{ title }}</p>
+        <p> {{ author }}</p>
+        <p> {{ year }}</p>
+        <p> {{ ratings }}</p>
+        <br>
+        <br>
+        <p> GOODREADS RATINGS</p>
+        <P> AVG RATING = {{ gr_avg_rating }}</P>
+        <p> TOTAL RATINGS = {{ gr_ratings_count }}</p>
+        <form action="{{ url_for('submit_review', isbn = isbn) }}" method = "post">
+            <input type="text" name = "review_text" placeholder="Enter your review...">
+            <input type="text" name = "ratings" placeholder="ratings">
+            <input type="submit" value = "Post">
+        </form>
+        <div>
+            {% for review in reviews %}
+                <b>{{ review[0] }}</b>
+                <p>{{ review[1] }} </p>
+                <br>
+            {% endfor %}
+        </div>
+    </body>
+</html>

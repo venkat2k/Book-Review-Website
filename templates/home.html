@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Home
+        </title>
+    </head>
+    <body>
+        <h3> Welcome, {{ dname }}</h3>
+        <form action="{{ url_for('logout') }}" method="POST">
+            <input type="submit" value="logout"> 
+        </form>
+        <form action="{{ url_for('search') }}" method = "POST">
+            <input type="text" name="search_text" placeholder="Search for books..." style="width: 100%">
+            <input type="submit" value="Search">
+        </form>
+    </body>
+</html>

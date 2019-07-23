@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <h3>search {{ search_text }}</h3>
+        <!-- {% for item in results %}
+            <h1>{{ item }}</h1>
+        {% endfor %} -->
+
+        <form method="get">
+            {% for item in results %}
+                <a href="{{ url_for('book', isbn = item[1]) }}">{{ item[0] }}</a>
+            {% endfor %}
+        </form>
+    </body>
+</html>
