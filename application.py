@@ -1,5 +1,6 @@
 import os
-
+import requests
+import json
 from flask import *
 from flask_session import Session
 from sqlalchemy import create_engine
@@ -86,12 +87,30 @@ def book(isbn):
 	title, author, year = db.execute("SELECT title, author, year FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
 	session["isbn"] = isbn
 	db.commit()
-	return render_template("book.html", title = title, author = author, year = year, isbn = isbn)
+	reviews = db.execute("SELECT username, review_text FROM reviews WHERE isbn = :isbn", {"isbn": isbn}).fetchall()
+	ratings = db.execute("SELECT AVG(ratings) FROM reviews WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+	db.commit()
+	ratings = float(ratings[0])
+	book_details = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "qnNLAI3BNc89adBueNwUg", "isbns": isbn}).json()
+	gr_ratings_count = book_details["books"][0]["ratings_count"]
+	gr_avg_rating = book_details["books"][0]["average_rating"]
+	return render_template("book.html", title = title, author = author, year = year, isbn = isbn, reviews = reviews, ratings = str(ratings),
+			gr_ratings_count = gr_ratings_count, gr_avg_rating = gr_avg_rating)
 
 @app.route("/submitreview", methods = ["POST"])
 def submit_review():
 	isbn = session["isbn"]
 	review_text = request.form.get("review_text")
-	db.execute("INSERT INTO reviews (isbn, username, review_text) VALUES ('{0}', '{1}', '{2}')".format(isbn, session["username"], review_text))
+	ratings = int(request.form.get("ratings"))
+	
+	db.execute("INSERT INTO reviews (isbn, username, review_text, ratings) VALUES ('{0}', '{1}', '{2}', {3})".format(isbn, session["username"], review_text, ratings))
 	db.commit()
 	return redirect(url_for('book', isbn = isbn))
+
+@app.route("/api/<string:isbn>", methods = ["GET"])
+def api(isbn):
+	title, author, year = db.execute("SELECT title, author, year FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+	avg_ratings, ratings_count = db.execute("SELECT AVG(ratings), COUNT(*) FROM reviews WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+	db.commit()
+	result = {"title": title, "author": author, "year": year, "isbn": isbn, "review_count": ratings_count, "average_score": float(avg_ratings)}
+	return json.dumps(result)
