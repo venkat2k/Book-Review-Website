@@ -107,6 +107,7 @@ def submit_review():
 	db.commit()
 	return redirect(url_for('book', isbn = isbn))
 
+
 @app.route("/api/<string:isbn>", methods = ["GET"])
 def api(isbn):
 	title, author, year = db.execute("SELECT title, author, year FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
